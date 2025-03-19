@@ -9,10 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-    }
+    
 
     public function notifyApplicationStatus(Request $request, $id)
     {

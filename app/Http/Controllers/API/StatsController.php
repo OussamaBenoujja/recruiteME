@@ -12,12 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class StatsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-        $this->middleware('role:recruiter')->only(['recruiterStats']);
-        $this->middleware('role:admin')->only(['globalStats']);
-    }
+   
 
     public function recruiterStats()
     {

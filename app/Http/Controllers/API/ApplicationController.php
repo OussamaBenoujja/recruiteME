@@ -13,13 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-        $this->middleware('role:recruiter')->only(['index', 'show']);
-        $this->middleware('role:candidate')->only(['myApplications', 'store', 'destroy']);
-    }
-
+    
     public function index(Request $request)
     {
         // For recruiters to list applications for their job listings

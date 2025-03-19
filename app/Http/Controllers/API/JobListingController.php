@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class JobListingController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api')->except(['index', 'show']);
-        $this->middleware('role:recruiter')->only(['store', 'update', 'destroy']);
-    }
+  
 
     public function index(Request $request)
     {

@@ -12,10 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['register', 'login', 'forgotPassword', 'resetPassword']]);
-    }
+  
 
     public function register(RegisterRequest $request)
     {

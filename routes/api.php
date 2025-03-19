@@ -10,38 +10,73 @@ use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
 Route::group(['prefix' => 'auth'], function () {
+    // Public auth routes
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('password/forgot', [AuthController::class, 'forgotPassword']);
     Route::post('password/reset', [AuthController::class, 'resetPassword']);
+    
+    // Protected auth routes
+    Route::middleware('auth:api')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::post('refresh', [AuthController::class, 'refresh']);
+    });
 });
 
 // Job Listings Routes
 Route::get('job-listings', [JobListingController::class, 'index']);
 Route::get('job-listings/{id}', [JobListingController::class, 'show']);
-Route::post('job-listings', [JobListingController::class, 'store']);
-Route::put('job-listings/{id}', [JobListingController::class, 'update']);
-Route::delete('job-listings/{id}', [JobListingController::class, 'destroy']);
+
+// Protected Job Listing Routes
+Route::middleware('auth:api')->group(function () {
+    Route::middleware('role:recruiter')->group(function () {
+        Route::post('job-listings', [JobListingController::class, 'store']);
+        Route::put('job-listings/{id}', [JobListingController::class, 'update']);
+        Route::delete('job-listings/{id}', [JobListingController::class, 'destroy']);
+    });
+});
 
 // Applications Routes
-Route::get('applications', [ApplicationController::class, 'index']);
-Route::get('applications/my', [ApplicationController::class, 'myApplications']);
-Route::post('applications', [ApplicationController::class, 'store']);
-Route::get('applications/{id}', [ApplicationController::class, 'show']);
-Route::delete('applications/{id}', [ApplicationController::class, 'destroy']);
-Route::put('applications/{id}/status', [ApplicationController::class, 'updateStatus']);
-Route::get('applications/{id}/status', [ApplicationController::class, 'trackStatus']);
+Route::middleware('auth:api')->group(function () {
+    // Recruiter only routes
+    Route::middleware('role:recruiter')->group(function () {
+        Route::get('applications', [ApplicationController::class, 'index']);
+        Route::get('applications/{id}', [ApplicationController::class, 'show']);
+        Route::put('applications/{id}/status', [ApplicationController::class, 'updateStatus']);
+    });
+    
+    // Candidate only routes
+    Route::middleware('role:candidate')->group(function () {
+        Route::get('applications/my', [ApplicationController::class, 'myApplications']);
+        Route::post('applications', [ApplicationController::class, 'store']);
+        Route::delete('applications/{id}', [ApplicationController::class, 'destroy']);
+        Route::get('applications/{id}/status', [ApplicationController::class, 'trackStatus']);
+    });
+});
 
 // Notifications Routes
-Route::post('notifications/application/{id}', [NotificationController::class, 'notifyApplicationStatus']);
+Route::middleware('auth:api')->group(function () {
+    Route::post('notifications/application/{id}', [NotificationController::class, 'notifyApplicationStatus']);
+});
 
 // User Routes
-Route::get('users/profile', [UserController::class, 'profile']);
-Route::put('users/profile', [UserController::class, 'update']);
-Route::delete('users/{id}', [UserController::class, 'destroy']);
+Route::middleware('auth:api')->group(function () {
+    Route::get('users/profile', [UserController::class, 'profile']);
+    Route::put('users/profile', [UserController::class, 'update']);
+    
+    // Admin only routes
+    Route::middleware('role:admin')->group(function () {
+        Route::delete('users/{id}', [UserController::class, 'destroy']);
+    });
+});
 
 // Stats Routes
-Route::get('stats/recruiter', [StatsController::class, 'recruiterStats']);
-Route::get('stats/global', [StatsController::class, 'globalStats']);
+Route::middleware('auth:api')->group(function () {
+    Route::middleware('role:recruiter')->group(function () {
+        Route::get('stats/recruiter', [StatsController::class, 'recruiterStats']);
+    });
+    
+    Route::middleware('role:admin')->group(function () {
+        Route::get('stats/global', [StatsController::class, 'globalStats']);
+    });
+});
