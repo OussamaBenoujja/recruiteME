@@ -6,23 +6,24 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateJobListingRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true; // Change from false to true
     }
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    
     public function rules(): array
     {
         return [
-            //
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'location' => 'sometimes|required|string|max:255',
+            'company' => 'sometimes|required|string|max:255',
+            'employment_type' => 'sometimes|required|string|max:255',
+            'experience_level' => 'nullable|string|max:255',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gt:salary_min',
+            'closing_date' => 'nullable|date|after:today',
+            'is_active' => 'sometimes|boolean'
         ];
     }
 }
