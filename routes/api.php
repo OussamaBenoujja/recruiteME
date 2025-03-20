@@ -56,7 +56,9 @@ Route::middleware('auth:api')->group(function () {
 
 // Notifications Routes
 Route::middleware('auth:api')->group(function () {
-    Route::post('notifications/application/{id}', [NotificationController::class, 'notifyApplicationStatus']);
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::put('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });
 
 // User Routes

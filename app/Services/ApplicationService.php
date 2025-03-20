@@ -6,6 +6,8 @@ use App\Repositories\Interfaces\ApplicationRepositoryInterface;
 use App\Repositories\Interfaces\JobListingRepositoryInterface;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
+use App\Services\NotificationService;
+
 
 class ApplicationService
 {

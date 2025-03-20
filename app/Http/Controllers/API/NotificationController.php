@@ -3,34 +3,71 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    
+    protected $notificationService;
 
-    public function notifyApplicationStatus(Request $request, $id)
+    public function __construct(NotificationService $notificationService)
     {
-        $request->validate([
-            'message' => 'required|string',
-        ]);
+        $this->notificationService = $notificationService;
+    }
 
-        $notification = Notification::create([
-            'user_id' => $id,
-            'type' => 'application_status',
-            'notifiable_type' => 'Application',
-            'notifiable_id' => $request->application_id,
-            'message' => $request->message,
-        ]);
-
-        // In a real application, you would also send an email here
+    /**
+     * Get user notifications
+     */
+    public function index(Request $request)
+    {
+        $perPage = $request->input('per_page', 20);
+        $notifications = $this->notificationService->getUserNotifications(
+            Auth::id(), 
+            $perPage
+        );
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Notification sent successfully',
-            'data' => $notification,
-        ], 201);
+            'data' => $notifications,
+            'unread_count' => $this->notificationService->countUnreadNotifications(Auth::id())
+        ]);
+    }
+
+    /**
+     * Mark a specific notification as read
+     */
+    public function markAsRead($notificationId)
+    {
+        try {
+            $result = $this->notificationService->markNotificationAsRead($notificationId);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notification marked as read',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to mark notification as read',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Get unread notifications count
+     */
+    public function unreadCount()
+    {
+        $unreadCount = $this->notificationService->countUnreadNotifications(Auth::id());
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'unread_count' => $unreadCount
+            ]
+        ]);
     }
 }
