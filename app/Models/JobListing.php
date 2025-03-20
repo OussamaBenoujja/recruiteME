@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class JobListing extends Model
 {
 
-    // For JobListing.php
+    
 protected $fillable = [
     'user_id',
     'title',
@@ -21,7 +21,7 @@ protected $fillable = [
     'is_active',
     'closing_date'
 ];
-   // In JobListing.php
+   
 public function user()
 {
     return $this->belongsTo(User::class);

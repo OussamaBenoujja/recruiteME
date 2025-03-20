@@ -15,7 +15,6 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        // No explicit authorization needed here as we're getting the authenticated user
         return response()->json([
             'status' => 'success',
             'data' => $user,
@@ -26,13 +25,12 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        // Check authorization using policy
         $this->authorize('update', $user);
         
         // Filter out fields that shouldn't be updated
         $data = $request->except(['email', 'password', 'role']);
         
-        // Update user profile
+        
         $user->update($data);
 
         return response()->json([
@@ -46,7 +44,6 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Check authorization using policy
         $this->authorize('delete', $user);
 
         $user->delete();

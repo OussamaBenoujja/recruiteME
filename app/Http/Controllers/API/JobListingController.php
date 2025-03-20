@@ -75,7 +75,7 @@ class JobListingController extends Controller
     {
         $jobListing = JobListing::findOrFail($id);
 
-        // Check authorization using policy
+       
         $this->authorize('update', $jobListing);
 
         $jobListing->update($request->validated());

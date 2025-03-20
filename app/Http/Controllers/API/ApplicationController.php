@@ -60,7 +60,7 @@ class ApplicationController extends Controller
 
     public function store(StoreApplicationRequest $request)
     {
-        // Check authorization using policy
+        
         $this->authorize('create', Application::class);
 
         // Check if job listing exists and is active
@@ -91,7 +91,7 @@ class ApplicationController extends Controller
         // Store cover letter
         $coverLetterPath = $request->file('cover_letter')->store('applications/cover_letters', 'public');
 
-        // Create application
+        
         $application = Application::create([
             'user_id' => Auth::id(),
             'job_listing_id' => $request->job_listing_id,
@@ -100,7 +100,7 @@ class ApplicationController extends Controller
             'notes' => $request->notes,
         ]);
 
-        // Create notification for recruiter
+        
         Notification::create([
             'user_id' => $jobListing->user_id,
             'type' => 'new_application',
@@ -120,7 +120,7 @@ class ApplicationController extends Controller
     {
         $application = Application::with(['user', 'jobListing'])->findOrFail($id);
 
-        // Check authorization using policy
+        
         $this->authorize('view', $application);
 
         return response()->json([
@@ -156,14 +156,14 @@ class ApplicationController extends Controller
 
         $application = Application::findOrFail($id);
 
-        // Check authorization using policy
+        
         $this->authorize('updateStatus', $application);
 
         $oldStatus = $application->status;
         $application->status = $request->status;
         $application->save();
 
-        // Create notification for candidate
+        
         Notification::create([
             'user_id' => $application->user_id,
             'type' => 'status_update',
@@ -172,7 +172,7 @@ class ApplicationController extends Controller
             'message' => 'Your application status has been updated from ' . $oldStatus . ' to ' . $request->status,
         ]);
 
-        // In a real app, you would also send an email notification here
+        
 
         return response()->json([
             'status' => 'success',
@@ -185,7 +185,7 @@ class ApplicationController extends Controller
     {
         $application = Application::findOrFail($id);
 
-        // Check authorization using policy
+        
         $this->authorize('trackStatus', $application);
 
         return response()->json([
