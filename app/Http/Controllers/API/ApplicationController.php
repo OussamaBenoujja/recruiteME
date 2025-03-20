@@ -9,6 +9,7 @@ use App\Models\JobListing;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
@@ -16,6 +17,9 @@ class ApplicationController extends Controller
     
     public function index(Request $request)
     {
+        // Check authorization using policy
+        $this->authorize('viewAny', Application::class);
+
         // For recruiters to list applications for their job listings
         $applications = Application::whereHas('jobListing', function ($query) {
                 $query->where('user_id', Auth::id());
@@ -37,6 +41,9 @@ class ApplicationController extends Controller
 
     public function myApplications(Request $request)
     {
+        // Check authorization using policy
+        $this->authorize('viewOwn', Application::class);
+
         // For candidates to list their applications
         $applications = Application::where('user_id', Auth::id())
             ->when($request->has('status'), function ($query) use ($request) {
@@ -53,6 +60,9 @@ class ApplicationController extends Controller
 
     public function store(StoreApplicationRequest $request)
     {
+        // Check authorization using policy
+        $this->authorize('create', Application::class);
+
         // Check if job listing exists and is active
         $jobListing = JobListing::findOrFail($request->job_listing_id);
         
@@ -110,21 +120,8 @@ class ApplicationController extends Controller
     {
         $application = Application::with(['user', 'jobListing'])->findOrFail($id);
 
-        // Check if user is authorized to view this application
-        $authorized = false;
-        
-        if (Auth::user()->role === 'recruiter') {
-            $authorized = $application->jobListing->user_id === Auth::id();
-        } elseif (Auth::user()->role === 'candidate') {
-            $authorized = $application->user_id === Auth::id();
-        }
-
-        if (!$authorized) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('view', $application);
 
         return response()->json([
             'status' => 'success',
@@ -136,13 +133,8 @@ class ApplicationController extends Controller
     {
         $application = Application::findOrFail($id);
 
-        // Check if user is the owner of the application
-        if ($application->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('delete', $application);
 
         // Delete files
         Storage::disk('public')->delete($application->cv_path);
@@ -164,13 +156,8 @@ class ApplicationController extends Controller
 
         $application = Application::findOrFail($id);
 
-        // Check if user is the recruiter for this job listing
-        if (Auth::user()->role !== 'recruiter' || $application->jobListing->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('updateStatus', $application);
 
         $oldStatus = $application->status;
         $application->status = $request->status;
@@ -198,13 +185,8 @@ class ApplicationController extends Controller
     {
         $application = Application::findOrFail($id);
 
-        // Check if user is the owner of the application
-        if ($application->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('trackStatus', $application);
 
         return response()->json([
             'status' => 'success',

@@ -8,13 +8,13 @@ use App\Http\Requests\UpdateJobListingRequest;
 use App\Models\JobListing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class JobListingController extends Controller
 {
-  
-
     public function index(Request $request)
     {
+        // Anyone can view job listings, no auth check needed
         $jobListings = JobListing::query()
             ->when($request->has('search'), function ($query) use ($request) {
                 return $query->where('title', 'like', '%' . $request->search . '%')
@@ -37,6 +37,9 @@ class JobListingController extends Controller
 
     public function store(StoreJobListingRequest $request)
     {
+        // Check authorization using policy
+        $this->authorize('create', JobListing::class);
+
         $jobListing = JobListing::create([
             'user_id' => Auth::id(),
             'title' => $request->title,
@@ -61,6 +64,7 @@ class JobListingController extends Controller
     {
         $jobListing = JobListing::findOrFail($id);
 
+        // Anyone can view a job listing, no auth check needed
         return response()->json([
             'status' => 'success',
             'data' => $jobListing,
@@ -71,13 +75,8 @@ class JobListingController extends Controller
     {
         $jobListing = JobListing::findOrFail($id);
 
-        // Check if the user is the owner of the job listing
-        if ($jobListing->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('update', $jobListing);
 
         $jobListing->update($request->validated());
 
@@ -92,13 +91,8 @@ class JobListingController extends Controller
     {
         $jobListing = JobListing::findOrFail($id);
 
-        // Check if the user is the owner of the job listing
-        if ($jobListing->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // Check authorization using policy
+        $this->authorize('delete', $jobListing);
 
         $jobListing->delete();
 

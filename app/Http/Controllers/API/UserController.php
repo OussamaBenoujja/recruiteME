@@ -7,22 +7,27 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
-    
-
     public function profile()
     {
+        $user = Auth::user();
+        
+        // No explicit authorization needed here as we're getting the authenticated user
         return response()->json([
             'status' => 'success',
-            'data' => Auth::user(),
+            'data' => $user,
         ]);
     }
 
     public function update(UpdateUserRequest $request)
     {
         $user = Auth::user();
+        
+        // Check authorization using policy
+        $this->authorize('update', $user);
         
         // Filter out fields that shouldn't be updated
         $data = $request->except(['email', 'password', 'role']);
@@ -41,7 +46,9 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // An admin can delete any user
+        // Check authorization using policy
+        $this->authorize('delete', $user);
+
         $user->delete();
 
         return response()->json([

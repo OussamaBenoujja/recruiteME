@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class NotificationController extends Controller
 {
@@ -21,6 +23,9 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
+        // Check authorization using policy
+        $this->authorize('viewAny', Notification::class);
+
         $perPage = $request->input('per_page', 20);
         $notifications = $this->notificationService->getUserNotifications(
             Auth::id(), 
@@ -39,6 +44,11 @@ class NotificationController extends Controller
      */
     public function markAsRead($notificationId)
     {
+        $notification = Notification::findOrFail($notificationId);
+        
+        // Check authorization using policy
+        $this->authorize('update', $notification);
+
         try {
             $result = $this->notificationService->markNotificationAsRead($notificationId);
             
@@ -61,6 +71,9 @@ class NotificationController extends Controller
      */
     public function unreadCount()
     {
+        // Check authorization using policy
+        $this->authorize('viewAny', Notification::class);
+
         $unreadCount = $this->notificationService->countUnreadNotifications(Auth::id());
         
         return response()->json([

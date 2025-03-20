@@ -9,13 +9,20 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class StatsController extends Controller
 {
-   
-
     public function recruiterStats()
     {
+        // Check authorization using gate
+        if (!Gate::allows('view-recruiter-stats')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
         $userId = Auth::id();
 
         // Job listing stats
@@ -58,6 +65,14 @@ class StatsController extends Controller
 
     public function globalStats()
     {
+        // Check authorization using gate
+        if (!Gate::allows('view-global-stats')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
         // User stats
         $userStats = [
             'total' => User::count(),
@@ -106,5 +121,5 @@ class StatsController extends Controller
                 'applications' => $applicationStats,
             ],
         ]);
-    }
-}
+    } // <-- This closes the globalStats method
+} // <-- This closes the StatsController class
